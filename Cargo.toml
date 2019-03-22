@@ -1,0 +1,10 @@
+[package]
+name = "val_unc"
+version = "0.2.0"
+authors = ["Justin Browne <jebdude89@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+serde = "*"
+serde_derive = "*"
+rand = "*"
