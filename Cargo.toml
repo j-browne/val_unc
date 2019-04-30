@@ -1,10 +1,12 @@
 [package]
 name = "val_unc"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Justin Browne <jebdude89@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-serde = "*"
-serde_derive = "*"
+serde = { version = "1.0", optional = true }
 rand = "*"
+
+[features]
+serde-1 = ["serde"]
