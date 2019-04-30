@@ -4,19 +4,24 @@ use rand::{
     Rng,
 };
 use std::convert::From;
+use num;
 
 #[cfg(feature = "serde-1")]
 mod serde;
 
+/// A structure meant to hold a measurement that has a central value and an
+/// uncertainty associated with it.
 #[derive(Debug, Clone, Copy)]
-pub struct ValUnc {
-    pub val: f64,
-    pub unc: f64,
+pub struct ValUnc<T> {
+    /// The central value of the measurement
+    pub val: T,
+    /// The uncertainty of the measurement
+    pub unc: T,
 }
 
-impl ValUnc {
-    pub fn rand<R: Rng>(&self, rng: &mut R) -> ValUnc {
-        if self.unc == 0.0 {
+impl ValUnc<f64> {
+    pub fn rand<R: Rng>(&self, rng: &mut R) -> ValUnc<f64> {
+        if self.unc == num::zero() {
             *self
         } else {
             Self {
@@ -27,14 +32,14 @@ impl ValUnc {
     }
 }
 
-impl From<f64> for ValUnc {
-    fn from(val: f64) -> Self {
-        Self { val, unc: 0.0 }
+impl<T> From<T> for ValUnc<T> where T: num::Zero {
+    fn from(val: T) -> Self {
+        Self { val, unc: num::zero() }
     }
 }
 
-impl From<(f64, f64)> for ValUnc {
-    fn from(tup: (f64, f64)) -> Self {
+impl<T> From<(T, T)> for ValUnc<T> {
+    fn from(tup: (T, T)) -> Self {
         Self {
             val: tup.0,
             unc: tup.1,
