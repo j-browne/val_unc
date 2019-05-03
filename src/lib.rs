@@ -41,3 +41,30 @@ impl From<(f64, f64)> for ValUnc {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct ValSysStat {
+    pub val: f64,
+    pub sys: f64,
+    pub stat: f64,
+}
+
+impl From<f64> for ValSysStat {
+    fn from(val: f64) -> Self {
+        Self {
+            val,
+            sys: 0.0,
+            stat: 0.0,
+        }
+    }
+}
+
+impl From<(f64, f64, f64)> for ValSysStat {
+    fn from(tup: (f64, f64, f64)) -> Self {
+        Self {
+            val: tup.0,
+            sys: tup.1,
+            stat: tup.2,
+        }
+    }
+}

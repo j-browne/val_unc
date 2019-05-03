@@ -1,6 +1,6 @@
 [package]
 name = "val_unc"
-version = "0.3.0"
+version = "0.5.0"
 authors = ["Justin Browne <jebdude89@gmail.com>"]
 edition = "2018"
 
