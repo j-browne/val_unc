@@ -1,4 +1,3 @@
-#![feature(custom_attribute)]
 use rand::{
     distributions::{Distribution, Normal},
     Rng,
