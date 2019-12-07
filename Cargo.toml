@@ -3,6 +3,7 @@ name = "val_unc"
 version = "0.6.0"
 authors = ["Justin Browne <jebdude89@gmail.com>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 serde = { version = "1.0", optional = true }
