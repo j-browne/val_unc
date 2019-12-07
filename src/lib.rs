@@ -1,3 +1,4 @@
+#[cfg(feature = "rand")]
 use rand::{
     distributions::{Distribution, Normal},
     Rng,
@@ -14,6 +15,7 @@ pub struct ValUnc {
 }
 
 impl ValUnc {
+    #[cfg(feature = "rand")]
     pub fn rand<R: Rng>(&self, rng: &mut R) -> ValUnc {
         if self.unc == 0.0 {
             *self
