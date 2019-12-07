@@ -5,7 +5,7 @@ use rand::{
 };
 use std::convert::From;
 
-#[cfg(feature = "serde-1")]
+#[cfg(feature = "serde")]
 mod serde;
 
 #[derive(Debug, Clone, Copy)]
