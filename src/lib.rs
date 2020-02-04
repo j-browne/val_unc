@@ -5,6 +5,8 @@ use std::{
     ops::{Add, Div, Mul, Neg, Sub},
 };
 
+pub mod ops;
+pub use ops::*;
 
 /// `ValUnc` is meant to be used with newtypes.
 ///
@@ -143,26 +145,6 @@ where
             unc: self.unc.unc_sub(self.val, other.unc, other.val),
         }
     }
-}
-
-pub trait UncAdd<V> {
-    fn unc_add(self, self_val: V, other: Self, other_val: V) -> Self;
-}
-
-pub trait UncDiv<V> {
-    fn unc_div(self, self_val: V, other: Self, other_val: V) -> Self;
-}
-
-pub trait UncMul<V> {
-    fn unc_mul(self, self_val: V, other: Self, other_val: V) -> Self;
-}
-
-pub trait UncNeg<V> {
-    fn unc_neg(self, self_val: V) -> Self;
-}
-
-pub trait UncSub<V> {
-    fn unc_sub(self, self_val: V, other: Self, other_val: V) -> Self;
 }
 
 // This implements the Unc versions of the ops traits for tuples of types that
