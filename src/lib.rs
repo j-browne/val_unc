@@ -48,7 +48,7 @@ pub use ops::*;
 /// assert!((val - 6.0).abs() <= std::f64::EPSILON);
 /// assert!((unc.0 - 5.0).abs() <= std::f64::EPSILON);
 /// ```
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ValUnc<V, U> {
     pub val: V,
