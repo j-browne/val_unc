@@ -1,12 +1,15 @@
 #[cfg(feature = "serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::{
     convert::From,
     ops::{Add, Div, Mul, Neg, Sub},
 };
 
-pub mod ops;
-pub use ops::*;
+pub mod traits;
+pub use traits::*;
+
+#[cfg(feature = "serde")]
+mod serde_conversion;
 
 /// `ValUnc` is meant to be used with newtypes.
 ///
@@ -50,6 +53,17 @@ pub use ops::*;
 /// ```
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(
+        into = "serde_conversion::ValUncTuple<V, U>",
+        from = "serde_conversion::ValUncTuple<V, U>",
+        bound(
+            serialize = "V: Clone + Serialize, U: Clone + Serialize + UncZero",
+            deserialize = "V: Deserialize<'de>, U: Deserialize<'de> + Default"
+        )
+    )
+)]
 pub struct ValUnc<V, U> {
     pub val: V,
     pub unc: U,
@@ -146,190 +160,6 @@ where
         }
     }
 }
-
-// This implements the Unc versions of the ops traits for tuples of types that
-// implement those traits (up to 12-tuples).
-macro_rules! unc_tuples {
-    ($({
-        $(($idx:tt) -> $T:ident)*
-    })+) => {$(
-        // In the following impls, the compiler complains about `other` not being used.
-        // This is only for the `()` impl 
-        // That's why there's the allow.
-
-        #[allow(unused_variables)]
-        impl<V, $($T),*> UncAdd<V> for ($($T,)*)
-        where
-            V: Copy,
-            $($T:UncAdd<V>),*
-        {
-            fn unc_add(self, self_val: V, other: Self, other_val: V) -> Self {
-                ($(
-                    self.$idx.unc_add(self_val, other.$idx, other_val),
-                )*)
-            }
-        }
-
-        #[allow(unused_variables)]
-        impl<V, $($T),*> UncDiv<V> for ($($T,)*)
-        where
-            V: Copy,
-            $($T:UncDiv<V>),*
-        {
-            fn unc_div(self, self_val: V, other: Self, other_val: V) -> Self {
-                ($(
-                    self.$idx.unc_div(self_val, other.$idx, other_val),
-                )*)
-            }
-        }
-
-        #[allow(unused_variables)]
-        impl<V, $($T),*> UncMul<V> for ($($T,)*)
-        where
-            V: Copy,
-            $($T:UncMul<V>),*
-        {
-            fn unc_mul(self, self_val: V, other: Self, other_val: V) -> Self {
-                ($(
-                    self.$idx.unc_mul(self_val, other.$idx, other_val),
-                )*)
-            }
-        }
-
-        #[allow(unused_variables)]
-        impl<V, $($T),*> UncNeg<V> for ($($T,)*)
-        where
-            V: Copy,
-            $($T:UncNeg<V>),*
-        {
-            fn unc_neg(self, self_val: V) -> Self {
-                ($(
-                    self.$idx.unc_neg(self_val),
-                )*)
-            }
-        }
-
-        #[allow(unused_variables)]
-        impl<V, $($T),*> UncSub<V> for ($($T,)*)
-        where
-            V: Copy,
-            $($T:UncSub<V>),*
-        {
-            fn unc_sub(self, self_val: V, other: Self, other_val: V) -> Self {
-                ($(
-                    self.$idx.unc_sub(self_val, other.$idx, other_val),
-                )*)
-            }
-        }
-    )+}
-}
-
-unc_tuples!(
-    {
-    }
-    {
-        (0) -> U0
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-        (4) -> U4
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-        (4) -> U4
-        (5) -> U5
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-        (4) -> U4
-        (5) -> U5
-        (6) -> U6
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-        (4) -> U4
-        (5) -> U5
-        (6) -> U6
-        (7) -> U7
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-        (4) -> U4
-        (5) -> U5
-        (6) -> U6
-        (7) -> U7
-        (8) -> U8
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-        (4) -> U4
-        (5) -> U5
-        (6) -> U6
-        (7) -> U7
-        (8) -> U8
-        (9) -> U9
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-        (4) -> U4
-        (5) -> U5
-        (6) -> U6
-        (7) -> U7
-        (8) -> U8
-        (9) -> U9
-        (10) -> U10
-    }
-    {
-        (0) -> U0
-        (1) -> U1
-        (2) -> U2
-        (3) -> U3
-        (4) -> U4
-        (5) -> U5
-        (6) -> U6
-        (7) -> U7
-        (8) -> U8
-        (9) -> U9
-        (10) -> U10
-        (11) -> U11
-    }
-);
 
 #[cfg(test)]
 mod tests {
