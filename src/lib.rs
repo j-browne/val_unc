@@ -69,6 +69,15 @@ pub struct ValUnc<V, U> {
     pub unc: U,
 }
 
+impl<V, U> ValUnc<V, U> {
+    pub fn new(val: V, unc: U) -> Self {
+        Self {
+            val,
+            unc,
+        }
+    }
+}
+
 impl<V, U> From<V> for ValUnc<V, U>
 where
     U: Default,
