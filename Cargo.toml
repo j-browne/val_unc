@@ -3,7 +3,12 @@ name = "val_unc"
 version = "0.7.0"
 authors = ["Justin Browne <jebdude89@gmail.com>"]
 edition = "2018"
+description = "A package for handling quantities with uncertainties."
+repository = "https://github.com/j-browne/val_unc"
+readme = "README.md"
 license = "MIT OR Apache-2.0"
+keywords = ["science", "uncertainty", "error"]
+categories = ["science", "mathematics"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"], optional = true }
