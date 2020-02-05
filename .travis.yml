@@ -3,3 +3,8 @@ rust:
   - stable
   - beta
   - nightly
+env:
+  -
+  - FEATURES="serde"
+script:
+  - cargo test --verbose --features "$FEATURES"
