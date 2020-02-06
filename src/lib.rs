@@ -1,3 +1,70 @@
+//! A package for handling quantities with uncertainties.
+//!
+//! The [`ValUnc`] type represents a quantity with a mean value `val` and
+//! uncertainties `unc`. It is designed to be used with [newtypes] that wrap a
+//! basic numeric type, e.g. `f64`. This allows for the type to define how
+//! uncertainties should be propagated, with minimal confusion.
+//!
+//! [newtypes]: https://doc.rust-lang.org/1.0.0/style/features/types/newtype.html
+//!
+//! The [`traits`] module defines some traits that are necessary for
+//! uncertainty types to be implemented in order for the related type to be
+//! implemented for `ValUnc`. For example, in order to implement `Add` for
+//! `ValUnc`, all of the uncertainty types used must implement [`UncAdd`].
+//! These are opt-in and only the traits used need to be implemented.
+//!
+//! # Features
+//!
+//! The `serde` feature can be enabled for use with [`serde`]. A `ValUnc<V, U>`
+//! is (de)serialized as a `(V, U)` or if `unc` is zero, according to
+//! [`num-traits::Zero`], just a `V`.
+//!
+//! [`serde`]: https://serde.rs
+//! [`num-traits::Zero`]: https://docs.rs/num-traits/*/num_traits/identities/trait.Zero.html
+//!
+//! # Examples
+//!
+//! The following demonstrates how one would go about creating uncertainty
+//! types and implementing the traits necessary for doing math with ValUnc
+//! (only `Add`, in this case). Notably, the implementations of `UncAdd` are
+//! different. The two uncertainties, though, can be used together in one
+//! ValUnc.
+//!
+//! ```
+//! use val_unc::{ValUnc, UncAdd};
+//!
+//! // This is a type for statistical uncertainties.
+//! // The result of adding two `StatUnc`s is the square root of the sum of the squares.
+//! #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
+//! struct StatUnc(pub f64);
+//!
+//! impl<T> UncAdd<T> for StatUnc {
+//!     fn unc_add(self, _self_val: T, other: Self, _other_val: T) -> Self {
+//!         Self(f64::sqrt(f64::powi(self.0, 2) + f64::powi(other.0, 2)))
+//!     }
+//! }
+//!
+//! // This is a type for systematic uncertainties.
+//! // The result of adding two `SysUnc`s is the sum of the two.
+//! #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
+//! struct SysUnc(pub f64);
+//!
+//! impl<T> UncAdd<T> for SysUnc {
+//!     fn unc_add(self, _self_val: T, other: Self, _other_val: T) -> Self {
+//!         Self(self.0 + other.0)
+//!     }
+//! }
+//!
+//! // Create two values and add them together
+//! let v1 = ValUnc::new(10.2, (StatUnc(4.0), SysUnc(1.25)));
+//! let v2 = ValUnc::new(8.5, (StatUnc(3.0), SysUnc(1.25)));
+//! // You can use destructuring to unpack the results
+//! let ValUnc { val, unc: (stat, sys) } = v1 + v2;
+//!
+//! assert!(f64::abs(val - 18.7) <= std::f64::EPSILON);
+//! assert!(f64::abs(stat.0 - 5.0) <= std::f64::EPSILON);
+//! assert!(f64::abs(sys.0 - 2.5) <= std::f64::EPSILON);
+//! ```
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{
@@ -11,46 +78,7 @@ pub use traits::*;
 #[cfg(feature = "serde")]
 mod serde_conversion;
 
-/// `ValUnc` is meant to be used with newtypes.
-///
-/// `{`[`Add`]`, `[`Div`]`, `[`Mul`]`, `[`Neg`]`, `[`Sub`]`}`
-/// are implemented if `V` implements that trait
-/// and `U` implements `{`[`UncAdd<V>`]`, `[`UncDiv<V>`]`, `[`UncMul<V>`]`,`[`UncNeg<V>`]`, `[`UncSub<V>`]`}`.
-///
-/// [`UncAdd<V>`]: UncAdd
-/// [`UncDiv<V>`]: UncDiv
-/// [`UncMul<V>`]: UncMul
-/// [`UncNeg<V>`]: UncNeg
-/// [`UncSub<V>`]: UncSub
-///
-///
-///
-/// # Examples
-/// ```
-/// use val_unc::{ValUnc, UncAdd};
-///
-/// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
-/// struct StatUnc(pub f64);
-///
-/// impl UncAdd<f64> for StatUnc {
-///     fn unc_add(self, _self_val: f64, other: StatUnc, _other_val: f64) -> StatUnc {
-///         StatUnc(f64::sqrt(f64::powi(self.0, 2) + f64::powi(other.0, 2)))
-///     }
-/// }
-///
-/// let v1 = ValUnc {
-///     val: 1.0,
-///     unc: StatUnc(3.0),
-/// };
-/// let v2 = ValUnc {
-///     val: 5.0,
-///     unc: StatUnc(4.0),
-/// };
-///
-/// let ValUnc { val, unc } = v1 + v2;
-/// assert!((val - 6.0).abs() <= std::f64::EPSILON);
-/// assert!((unc.0 - 5.0).abs() <= std::f64::EPSILON);
-/// ```
+/// A type with a value and uncertainties.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
@@ -71,10 +99,7 @@ pub struct ValUnc<V, U> {
 
 impl<V, U> ValUnc<V, U> {
     pub fn new(val: V, unc: U) -> Self {
-        Self {
-            val,
-            unc,
-        }
+        Self { val, unc }
     }
 }
 
@@ -97,7 +122,6 @@ where
 {
     type Output = Self;
 
-    /// Add `val`s together using [`std::ops::Add`], and add `unc`s together using [`UncAdd`]
     fn add(self, other: Self) -> Self {
         Self {
             val: self.val.add(other.val),
@@ -113,7 +137,6 @@ where
 {
     type Output = Self;
 
-    ///
     fn div(self, other: Self) -> Self {
         Self {
             val: self.val.div(other.val),
@@ -129,7 +152,6 @@ where
 {
     type Output = Self;
 
-    ///
     fn mul(self, other: Self) -> Self {
         Self {
             val: self.val.mul(other.val),
@@ -145,7 +167,6 @@ where
 {
     type Output = Self;
 
-    ///
     fn neg(self) -> Self {
         Self {
             val: self.val.neg(),
@@ -161,7 +182,6 @@ where
 {
     type Output = Self;
 
-    ///
     fn sub(self, other: Self) -> Self {
         Self {
             val: self.val.sub(other.val),
@@ -179,23 +199,32 @@ mod tests {
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
         struct StatUnc(pub f64);
 
-        impl UncAdd<f64> for StatUnc {
-            fn unc_add(self, _self_val: f64, other: StatUnc, _other_val: f64) -> StatUnc {
-                StatUnc(f64::sqrt(f64::powi(self.0, 2) + f64::powi(other.0, 2)))
+        impl<T> UncAdd<T> for StatUnc {
+            fn unc_add(self, _self_val: T, other: Self, _other_val: T) -> Self {
+                Self(f64::sqrt(f64::powi(self.0, 2) + f64::powi(other.0, 2)))
             }
         }
 
-        let v1 = ValUnc {
-            val: 1.0,
-            unc: StatUnc(3.0),
-        };
-        let v2 = ValUnc {
-            val: 5.0,
-            unc: StatUnc(4.0),
-        };
+        #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
+        struct SysUnc(pub f64);
 
-        let ValUnc { val, unc } = v1 + v2;
-        assert!((val - 6.0).abs() <= std::f64::EPSILON);
-        assert!((unc.0 - 5.0).abs() <= std::f64::EPSILON);
+        impl<T> UncAdd<T> for SysUnc {
+            fn unc_add(self, _self_val: T, other: Self, _other_val: T) -> Self {
+                Self(self.0 + other.0)
+            }
+        }
+
+        // Create two values and add them together
+        let v1 = ValUnc::new(10.2, (StatUnc(4.0), SysUnc(1.25)));
+        let v2 = ValUnc::new(8.5, (StatUnc(3.0), SysUnc(1.25)));
+        // You can use destructuring to unpack the results
+        let ValUnc {
+            val,
+            unc: (stat, sys),
+        } = v1 + v2;
+
+        assert!(f64::abs(val - 18.7) <= std::f64::EPSILON);
+        assert!(f64::abs(stat.0 - 5.0) <= std::f64::EPSILON);
+        assert!(f64::abs(sys.0 - 2.5) <= std::f64::EPSILON);
     }
 }
