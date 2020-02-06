@@ -25,10 +25,10 @@
 //! # Examples
 //!
 //! The following demonstrates how one would go about creating uncertainty
-//! types and implementing the traits necessary for doing math with ValUnc
+//! types and implementing the traits necessary for doing math with `ValUnc`
 //! (only `Add`, in this case). Notably, the implementations of `UncAdd` are
 //! different. The two uncertainties, though, can be used together in one
-//! ValUnc.
+//! `ValUnc`.
 //!
 //! ```
 //! use val_unc::{ValUnc, UncAdd};
