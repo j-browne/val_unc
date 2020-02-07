@@ -1,4 +1,17 @@
-use num_traits::Zero;
+pub use num_traits::{Float, Pow, Zero};
+
+pub trait Sqrt {
+    fn sqrt(self) -> Self;
+}
+
+impl<T> Sqrt for T
+where
+    T: Float,
+{
+    fn sqrt(self) -> Self {
+        self.sqrt()
+    }
+}
 
 pub trait UncZero {
     fn zero() -> Self;
