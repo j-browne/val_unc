@@ -67,10 +67,7 @@
 //! ```
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{
-    convert::From,
-    ops::{Add, Div, Mul, Neg, Sub},
-};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 pub mod traits;
 pub use traits::*;

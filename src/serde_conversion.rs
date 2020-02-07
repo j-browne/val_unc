@@ -1,6 +1,5 @@
 use crate::{traits::UncZero, ValUnc};
 use serde::{Deserialize, Serialize};
-use std::convert::From;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
