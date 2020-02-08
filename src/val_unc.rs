@@ -3,23 +3,9 @@ use crate::traits::*;
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-#[cfg(feature = "serde")]
-mod serde_conversion;
-
 /// A type with a value and uncertainties.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(
-        into = "serde_conversion::ValUncTuple<V, U>",
-        from = "serde_conversion::ValUncTuple<V, U>",
-        bound(
-            serialize = "V: Clone + Serialize, U: Clone + Serialize + UncZero",
-            deserialize = "V: Deserialize<'de>, U: Deserialize<'de> + Default"
-        )
-    )
-)]
 pub struct ValUnc<V, U> {
     pub val: V,
     pub unc: U,
