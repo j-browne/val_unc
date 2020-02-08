@@ -13,6 +13,12 @@
 //! `ValUnc`, all of the uncertainty types used must implement [`UncAdd`].
 //! These are opt-in and only the traits used need to be implemented.
 //!
+//! An example implementation of an uncertainty type is provided in [`unc`]. It
+//! uses standard error propagation rules (see [this][uncertainty]), and
+//! hopefully can be used if it fits your use case.
+//!
+//! [uncertainty]: https://en.wikipedia.org/wiki/Propagation_of_uncertainty
+//!
 //! # Features
 //!
 //! The `serde` feature can be enabled for use with [`serde`]. A `ValUnc<V, U>`
